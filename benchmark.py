@@ -1,8 +1,13 @@
 # Runs the timing and memory tests.
-
+import matplotlib
+import os
 import csv
 import time
 import tracemalloc
+
+matplotlib.use("Agg")
+
+import matplotlib.pyplot as plt
 
 from data_loader import load_graph_edges
 from algorithms import build_graph, baseline_shortest_path, dijkstra_shortest_path
@@ -83,6 +88,7 @@ def run_benchmark():
         ])
 
     save_results(results)
+    make_charts(results)
 
 
 def save_results(results):
@@ -105,6 +111,40 @@ def save_results(results):
         ])
 
         writer.writerows(results)
+
+
+def make_charts(results):
+    os.makedirs("output", exist_ok=True)
+
+    input_sizes = [row[0] for row in results]
+
+    baseline_times = [row[1] for row in results]
+    dijkstra_total_times = [row[4] for row in results]
+
+    baseline_memory = [row[5] for row in results]
+    dijkstra_memory = [row[6] for row in results]
+
+    plt.figure()
+    plt.plot(input_sizes, baseline_times, marker="o", label="Baseline")
+    plt.plot(input_sizes, dijkstra_total_times, marker="o", label="Optimized Dijkstra")
+    plt.title("Runtime Scaling")
+    plt.xlabel("Input Size (Number of Edges)")
+    plt.ylabel("Time (Seconds)")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("output/time_scaling.png")
+    plt.close()
+
+    plt.figure()
+    plt.plot(input_sizes, baseline_memory, marker="o", label="Baseline")
+    plt.plot(input_sizes, dijkstra_memory, marker="o", label="Optimized Dijkstra")
+    plt.title("Memory Usage Scaling")
+    plt.xlabel("Input Size (Number of Edges)")
+    plt.ylabel("Memory Usage (KB)")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("output/memory_scaling.png")
+    plt.close()
 
 
 if __name__ == "__main__":
